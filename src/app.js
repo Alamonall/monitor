@@ -1,17 +1,17 @@
 import express from 'express';
 import logger from 'morgan';
 import { JSONRPCServer } from 'json-rpc-2.0';
-import { logout, signin, signout } from './controller/auth.controller.js';
+import { logout, signin, signup } from './controller/auth.controller.js';
 import { info, latency } from './controller/main.controller.js';
 import cors from 'cors';
 import { port, postgresUri } from './config.js';
-import passport from 'passport';
 import knex from 'knex';
 import { Model } from 'objection';
+import { parseJsonRpcParams } from './utils.js';
 
 const server = new JSONRPCServer();
 server.addMethod('signin', signin);
-server.addMethod('signout', signout);
+server.addMethod('signup', signup);
 server.addMethod('logout', logout);
 server.addMethod('info', info);
 server.addMethod('latency', latency);
@@ -47,25 +47,22 @@ const knexClient = knex({
 
 Model.knex(knexClient);
 
-app.get('/', passport.authenticate('bearer', { session: false }), (req, res) => {
-  const jsonrpc = req.params['jsonrpc'];
-  const method = req.params['method'];
-  const params = JSON.parse(req.params['params']);
-  const id = req.params['id'];
-
-  server.receive({ jsonrpc, method, params, id }).then((jsonRPCResponse) => {
-    if (jsonRPCResponse) {
-      res.json(jsonRPCResponse);
-    } else {
-      res.sendStatus(204);
-    }
-  });
-});
-
-app.post('/', passport.authenticate('bearer', { session: false }),
+app.get('/',
+//  passport.authenticate('bearer', { session: false }),
   (req, res) => {
-    const jsonRPCRequest = req.body;
-    server.receive(jsonRPCRequest).then((jsonRPCResponse) => {
+    server.receive(parseJsonRpcParams(req.query)).then((jsonRPCResponse) => {
+      if (jsonRPCResponse) {
+        res.json(jsonRPCResponse);
+      } else {
+        res.sendStatus(204);  
+      }
+    });
+  });
+
+app.post('/', 
+// passport.authenticate('bearer', { session: false }),
+  (req, res) => {
+    server.receive(parseJsonRpcParams(req.body)).then((jsonRPCResponse) => {
       if (jsonRPCResponse) {
         res.json(jsonRPCResponse);
       } else {
@@ -73,11 +70,7 @@ app.post('/', passport.authenticate('bearer', { session: false }),
       }
     });
   });
-
-(() => {
-  // TODO: make migrations
-})();
-
+  
 app.listen(port, () => {
   console.log(`listening port ${port}`);
 });

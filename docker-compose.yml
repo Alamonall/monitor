@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  main:
+    image: node:19
+    environment:
+      PORT: 3000
+      POSTGRES_URI: postgres://postgres:postgres@postgres/postgres
+      REDIS_URI: redis://redis:6379
+    volumes:
+      - .:/code
+    working_dir: /code
+    ports: [ '3000:3000', ]
+    command: 'node src/app.js'
+    depends_on: [ postgres, redis ]
+
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: [ '5432:5432' ]
+
+  redis:
+    image: redis:6-alpine
+    ports: [ '6379:6379' ]

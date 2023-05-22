@@ -3,4 +3,5 @@ import * as dotenv from 'dotenv'; // see https://github.com/motdotla/dotenv#how-
 dotenv.config();
 
 export const port = process.env.PORT || 3000;
-export const postgresUri = process.env.POSTGRES_URI || 'postgres://postgres:postgres@postgres/postgres';
+export const postgresUri = process.env.POSTGRES_URI || 'postgres://postgres:postgres@localhost/postgres';
+export const redisUri = process.env.REDIS_URI || 'redis://redis:6379';
