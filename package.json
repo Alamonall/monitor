@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "prettier-format": "prettier --config .prettierrc 'src/**/*.js' --write",
-    "start:dev": "nodemon src/app",
+    "start:dev": "knex migrate:up && nodemon src/app",
     "start": "node ./src/bin/www"
   },
   "dependencies": {
